@@ -1,0 +1,64 @@
+[build]
+  command   = "npm ci && npm run build"
+  publish   = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  APP_ENV      = "production"
+
+# ─── SPA fallback ────────────────────────────────────────────────────────────
+# All routes fall through to index.html so React Router handles them client-side
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# ─── Security / COOP headers (required by Deriv charts & WebSocket) ──────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy   = "unsafe-none"
+    Cross-Origin-Embedder-Policy = "unsafe-none"
+    X-Frame-Options              = "SAMEORIGIN"
+    X-Content-Type-Options       = "nosniff"
+    Referrer-Policy              = "strict-origin-when-cross-origin"
+
+# ─── Immutable cache for hashed JS/CSS bundles (instant repeat loads) ────────
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ─── Long cache for fonts & images ───────────────────────────────────────────
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ─── Service worker — must always be fresh (no cache) ────────────────────────
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# ─── HTML — always revalidate so users get new deploys instantly ──────────────
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ─── Manifest — short cache ──────────────────────────────────────────────────
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
